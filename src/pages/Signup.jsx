@@ -1,12 +1,34 @@
 import { useState } from 'react'
 import styled from 'styled-components'
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+} from 'firebase/auth'
 
 import Background from '../components/Background'
 import Header from '../components/Header'
+import { firebaseAuth } from '../utils/firebase-config'
+import { useNavigate } from 'react-router-dom'
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false)
+  const [formValues, setFormValues] = useState({
+    email: '',
+    password: '',
+  })
+  const navigate = useNavigate()
 
+  const handleSignIn = async () => {
+    try {
+      const { email, password } = formValues
+      await createUserWithEmailAndPassword(firebaseAuth, email, password)
+      onAuthStateChanged(firebaseAuth, (currentUser) => {
+        if (currentUser) navigate('/')
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
   return (
     <Container showPassword={showPassword}>
       <Background />
@@ -22,15 +44,31 @@ export default function Signup() {
             </h6>
           </div>
           <div className="form">
-            <input type="email" placeholder="Email" name="email" />
+            <input
+              type="email"
+              placeholder="Email"
+              name="email"
+              value={formValues.email}
+              onChange={(e) =>
+                setFormValues({ ...formValues, email: e.target.value })
+              }
+            />
             {showPassword && (
-              <input type="password" placeholder="password" name="password" />
+              <input
+                type="password"
+                placeholder="password"
+                name="password"
+                value={formValues.password}
+                onChange={(e) =>
+                  setFormValues({ ...formValues, password: e.target.value })
+                }
+              />
             )}
             {!showPassword && (
               <button onClick={() => setShowPassword(true)}>Get started</button>
             )}
           </div>
-          <button> Sign up </button>
+          <button onClick={handleSignIn}> Sign up </button>
         </div>
       </div>
     </Container>
